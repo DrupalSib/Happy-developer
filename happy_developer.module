@@ -1,0 +1,83 @@
+<?php
+
+include_once('happy_developer.features.inc');
+
+/**
+ * Implements hook_enable().
+ */
+function happy_developer_enable() {
+  // Weight needs to be high in order to strongarm variables.
+  db_query("UPDATE {system} SET weight = 100 WHERE name = 'happy_developer' AND type = 'module'");
+
+  // Enable recommended modules if they are available. We save the modules we
+  // enabled to a variable so we can disable them when this feature is disabled.
+  if (function_exists('features_get_features') && ($feature = features_get_features('happy_developer', TRUE)) && !empty($feature->info['recommends'])) {
+    $all_modules = array_keys(system_rebuild_module_data());
+    // Filter out any non-existent modules.
+    $modules = array_intersect($feature->info['recommends'], $all_modules);
+    // Find out if any modules are already enabled.
+    $enabled = array_filter($modules, 'module_exists');
+
+    // We only want disabled modules.
+    if ($modules = array_diff($modules, $enabled)) {
+      features_install_modules($modules);
+      variable_set('happy_developer_enabled_modules', $modules);
+
+      // Let somebody know what we just did.
+      $singular = 'The @modules module was enabled.';
+      $plural = 'The following modules were enabled: @modules';
+      $message = format_plural(count($modules), $singular, $plural, array('@modules' => implode(', ', $modules)));
+      drupal_set_message($message);
+    }
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Implements hook_disable().
+ */
+function happy_developer_disable() {
+  if ($modules = variable_get('happy_developer_enabled_modules', array())) {
+    module_disable($modules);
+
+    // Let somebody know what we just did.
+    $singular = 'The @modules module was disabled.';
+    $plural = 'The following modules were disabled: @modules';
+    $message = format_plural(count($modules), $singular, $plural, array('@modules' => implode(', ', $modules)));
+    drupal_set_message($message);
+
+    // Delete the old variable.
+    variable_del('happy_developer_enabled_modules');
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function happy_developer_menu() {
+  $items = array();
+
+  $items['typography'] = array(
+    'title' => 'Typography Test Page',
+    'description' => 'Configure settings',
+    'page callback' => 'theme',
+    'page arguments' => array('typography_test_page'),
+    'access callback' => TRUE,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function happy_developer_theme() {
+  $items = array();
+
+  $items['typography_test_page'] = array(
+    'template' => 'typography-test-page',
+  );
+
+  return $items;
+}

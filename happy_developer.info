@@ -1,0 +1,19 @@
+name = Happy Developer
+description = Happy Developer is a <a href='http://drupal.org/project/features'>Feature</a> that aids in Site development.
+core = 7.x
+package = Dev/QA
+project = happy_developer
+dependencies[] = ctools
+dependencies[] = strongarm
+dependencies[] = views
+features[ctools][] = context:context:3
+features[ctools][] = strongarm:strongarm:1
+features[features_api][] = api:1
+features[variable][] = cache
+features[variable][] = preprocess_css
+features[variable][] = preprocess_js
+recommends[] = views_ui
+recommends[] = backup_migrate
+recommends[] = devel
+recommends[] = diff
+recommends[] = dcq
